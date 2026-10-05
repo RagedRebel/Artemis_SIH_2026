@@ -1,0 +1,37 @@
+{
+  "display_information": {
+    "name": "Artemis AI",
+    "description": "Security incident notifications and approval workflows from Artemis AI",
+    "background_color": "#0a0a0b",
+    "long_description": "Artemis AI Slack integration provides real-time security incident notifications with direct links to the Artemis dashboard and Jira tickets. It also enables approving or denying high-risk agent actions directly from Slack using interactive buttons."
+  },
+  "features": {
+    "bot_user": {
+      "display_name": "Artemis AI",
+      "always_online": true
+    }
+  },
+  "oauth_config": {
+    "redirect_urls": [
+      "http://localhost:5173/api/integrations/slack/callback"
+    ],
+    "scopes": {
+      "bot": [
+        "chat:write",
+        "channels:read",
+        "channels:join",
+        "groups:read",
+        "incoming-webhook"
+      ]
+    }
+  },
+  "settings": {
+    "interactivity": {
+      "is_enabled": true,
+      "request_url": "http://localhost:/api/integrations/slack/interactive"
+    },
+    "org_deploy_enabled": false,
+    "socket_mode_enabled": false,
+    "token_rotation_enabled": false
+  }
+}

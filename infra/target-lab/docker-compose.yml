@@ -1,0 +1,56 @@
+networks:
+  target-net:
+    external: true
+    name: htf_target-net
+  artemis-net:
+    external: true
+    name: htf_artemis-net
+
+services:
+
+  dvwa:
+    build:
+      context: ./dvwa
+      dockerfile: Dockerfile
+    networks:
+      target-net:
+        ipv4_address: 10.42.0.11
+      # Connect to artemis-net so the Wazuh agent can reach the manager
+      artemis-net: {}
+    restart: unless-stopped
+
+  vuln-apache:
+    build:
+      context: ./vuln-apache
+      dockerfile: Dockerfile
+    networks:
+      target-net:
+        ipv4_address: 10.42.0.12
+      artemis-net: {}
+    restart: unless-stopped
+
+  secure-apache:
+    build:
+      context: ./secure-apache
+      dockerfile: Dockerfile
+    networks:
+      target-net:
+        ipv4_address: 10.42.0.13
+      artemis-net: {}
+    restart: unless-stopped
+
+  # Metasploitable2 — multi-service vulnerable machine for full red team showcase
+  # Services: vsftpd 2.3.4 (FTP backdoor → port 6200 shell), Samba (open share),
+  # MySQL (no-auth root), PostgreSQL (postgres/postgres), SSH (msfadmin:msfadmin),
+  # Apache + PHP (port 80). Wazuh agent monitors auth, vsftpd, apache, samba, mysql logs.
+  metasploitable2:
+    build:
+      context: ./metasploitable2
+      dockerfile: Dockerfile
+    hostname: metasploitable2
+    networks:
+      target-net:
+        ipv4_address: 10.42.0.20
+      artemis-net: {}
+    restart: unless-stopped
+

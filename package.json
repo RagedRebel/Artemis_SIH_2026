@@ -1,0 +1,42 @@
+{
+  "name": "artemis",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Autonomous Red-Team & Enterprise Monitoring Intelligence System",
+  "workspaces": [
+    "agents",
+    "admin-panel"
+  ],
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "start": "turbo run start",
+    "test": "turbo run test",
+    "lint": "turbo run lint",
+    "start:orchestrator": "npm run start --workspace=agents",
+    "start:agents": "npm run start:all-agents --workspace=@artemis/agents",
+    "dev:admin": "npm run dev --workspace=admin-panel",
+    "logs": "npm run logs --workspace=agents"
+  },
+  "devDependencies": {
+    "turbo": "2.9.3",
+    "typescript": "6.0.2"
+  },
+  "packageManager": "npm@11.11.0",
+  "engines": {
+    "node": ">=24.13.0"
+  },
+  "dependencies": {
+    "@yagolopez/adk-utils": "0.2.7"
+  },
+  "overrides": {
+    "tar": "7.5.13",
+    "cacache": "20.0.4",
+    "@tootallnate/once": "3.0.1",
+    "http-proxy-agent": "9.0.0",
+    "make-fetch-happen": "15.0.5",
+    "node-gyp": "12.2.0",
+    "teeny-request": "10.1.2",
+    "retry-request": "8.0.2"
+  }
+}

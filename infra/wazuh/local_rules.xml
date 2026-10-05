@@ -1,0 +1,48 @@
+<!-- ARTEMIS custom rules — extends Wazuh base ruleset -->
+<group name="artemis,">
+
+  <!-- Nmap scan detection -->
+  <rule id="100001" level="8">
+    <if_group>web</if_group>
+    <match>GET / HTTP</match>
+    <regex>nmap|Nmap|NMAP</regex>
+    <description>Nmap HTTP scan detected</description>
+    <group>scan,recon,</group>
+    <mitre>
+      <id>T1595</id>
+    </mitre>
+  </rule>
+
+  <!-- SQLi attempt detection -->
+  <rule id="100002" level="12">
+    <if_group>web</if_group>
+    <regex>UNION.*SELECT|union.*select|/etc/passwd|../../../</regex>
+    <description>SQL injection or path traversal attempt detected</description>
+    <group>web_attack,sqli,</group>
+    <mitre>
+      <id>T1190</id>
+    </mitre>
+  </rule>
+
+  <!-- Metasploit payload patterns -->
+  <rule id="100003" level="15">
+    <decoded_as>json</decoded_as>
+    <regex>meterpreter|metasploit|msfvenom</regex>
+    <description>Metasploit framework activity detected</description>
+    <group>exploit,critical,</group>
+    <mitre>
+      <id>T1059</id>
+    </mitre>
+  </rule>
+
+  <!-- Port scan detected via multiple firewall drop events -->
+  <rule id="100004" level="8" frequency="20" timeframe="30">
+    <if_matched_group>firewall</if_matched_group>
+    <description>Port scan detected — multiple connection attempts</description>
+    <group>scan,recon,</group>
+    <mitre>
+      <id>T1046</id>
+    </mitre>
+  </rule>
+
+</group>

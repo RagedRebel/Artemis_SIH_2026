@@ -1,0 +1,16 @@
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "rootDir": "."
+  },
+  "include": [
+    "main.ts",
+    "shared/**/*.ts",
+    "orchestrator/**/*.ts",
+    "red-team/**/*.ts",
+    "blue-team/**/*.ts",
+    "cve-intel/**/*.ts"
+  ],
+  "exclude": ["node_modules", "dist"]
+}

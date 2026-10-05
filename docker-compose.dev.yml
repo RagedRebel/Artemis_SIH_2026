@@ -1,0 +1,16 @@
+services:
+
+  postgres:
+    ports:
+      - "5433:5433"
+
+  redis:
+    ports:
+      - "6379:6379"
+
+  kali-service:
+    ports:
+      - "8001:8001"
+    volumes:
+      - ./kali-service:/app
+    command: ["python3", "-m", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8001", "--reload"]

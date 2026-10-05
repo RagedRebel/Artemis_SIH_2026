@@ -1,0 +1,87 @@
+@import "tailwindcss";
+
+/* Flux-style: mint outer chrome + lime accent; light grey stays inside the main card */
+@theme {
+  --color-background: #d9e9a3;
+  --color-foreground: #18181b;
+  --color-card: #ffffff;
+  --color-card-foreground: #18181b;
+  --color-popover: #ffffff;
+  --color-popover-foreground: #18181b;
+  --color-primary: #bef264;
+  --color-primary-foreground: #171717;
+  --color-secondary: #f4f4f5;
+  --color-secondary-foreground: #3f3f46;
+  --color-muted: #f4f4f5;
+  --color-muted-foreground: #71717a;
+  --color-accent: #ecfccb;
+  --color-accent-foreground: #171717;
+  --color-destructive: #ef4444;
+  --color-destructive-foreground: #fef2f2;
+  --color-border: #e4e4e7;
+  --color-input: #e4e4e7;
+  --color-ring: #a3a3a3;
+
+  --color-severity-critical: #dc2626;
+  --color-severity-high: #ea580c;
+  --color-severity-medium: #ca8a04;
+  --color-severity-low: #16a34a;
+  --color-severity-info: #2563eb;
+
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+
+  --radius-lg: 1.25rem;
+  --radius-md: 0.75rem;
+  --radius-sm: 0.5rem;
+}
+
+@layer base {
+  html {
+    color-scheme: light;
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+/* Outer viewport — pale mint / lime wash (matches Flux reference ~#D9E9A3) */
+.app-canvas {
+  background: linear-gradient(
+    155deg,
+    #e3eeb8 0%,
+    #d9e9a3 38%,
+    #d2e395 72%,
+    #c9dc8c 100%
+  );
+}
+
+/* Inset light workspace card (Flux light grey ~#E8E8E8) */
+.app-main-panel {
+  background: #e8e8e8;
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.05),
+    0 18px 40px -16px rgba(0, 0, 0, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.45);
+}
+
+/* Scroll region inside the main card (document / html do not scroll) */
+.app-main-scroll {
+  scrollbar-gutter: stable;
+}
+
+.app-main-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+
+.app-main-scroll::-webkit-scrollbar-thumb {
+  border-radius: 9999px;
+  background: rgba(24, 24, 27, 0.18);
+}
+
+.app-main-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(24, 24, 27, 0.28);
+}

@@ -1,0 +1,153 @@
+networks:
+  artemis-net:
+    driver: bridge
+  target-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.42.0.0/24
+
+volumes:
+  postgres_data:
+  redis_data:
+  wazuh_data:
+
+services:
+
+  postgres:
+    image: timescale/timescaledb:latest-pg17
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-artemis}
+      POSTGRES_USER: ${POSTGRES_USER:-artemis}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-artemis_db_secret}
+      PGPORT: 5433
+    ports:
+        - "5433:5433"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./db/migrations:/docker-entrypoint-initdb.d
+    networks:
+      - artemis-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-artemis}"]
+      interval: 10s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    command: redis-server --save 60 1 --loglevel warning
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - artemis-net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      retries: 5
+
+  kali-service:
+    build:
+      context: ./kali-service
+      dockerfile: Dockerfile
+    environment:
+      KES_SECRET: ${KES_SECRET:-changeme}
+    ports:
+      - "8001:8001"
+    networks:
+      - artemis-net
+      - target-net
+    security_opt:
+      - seccomp:./infra/kali-config/seccomp-profile.json
+    mem_limit: 4g
+    cpus: '2.0'
+    cap_add:
+      - NET_RAW
+      - NET_ADMIN
+    restart: unless-stopped
+
+  wazuh-manager:
+    image: wazuh/wazuh-manager:4.7.3
+    environment:
+      - API_USERNAME=${WAZUH_API_USER:-wazuh-wui}
+      - API_PASSWORD=${WAZUH_API_PASSWORD:-wazuh_api_secret}
+    ports:
+      - "1514:1514/udp"
+      - "1515:1515"
+      - "55000:55000"
+    volumes:
+      - wazuh_data:/var/ossec/data
+      - ./infra/wazuh/local_rules.xml:/wazuh-config-mount/etc/rules/local_rules.xml
+      - ./infra/wazuh/active-response.sh:/wazuh-config-mount/active-response/bin/artemis-block.sh
+      - ./infra/wazuh/filebeat.yml:/etc/filebeat/filebeat.yml
+    networks:
+      - artemis-net
+    restart: unless-stopped
+
+  admin-panel:
+    build:
+      context: ./admin-panel
+      dockerfile: Dockerfile
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-artemis}:${POSTGRES_PASSWORD:-artemis_db_secret}@postgres:5433/${POSTGRES_DB:-artemis}
+      REDIS_URL: redis://redis:6379
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:-change_this_to_a_strong_random_secret}
+      NEXTAUTH_URL: ${NEXTAUTH_URL:-http://hackathon.acrossthe.cloud}
+      JIRA_CLIENT_ID: ${JIRA_CLIENT_ID:-}
+      JIRA_CLIENT_SECRET: ${JIRA_CLIENT_SECRET:-}
+      JIRA_REDIRECT_URI: ${JIRA_REDIRECT_URI:-}
+      SLACK_CLIENT_ID: ${SLACK_CLIENT_ID:-}
+      SLACK_CLIENT_SECRET: ${SLACK_CLIENT_SECRET:-}
+      SLACK_SIGNING_SECRET: ${SLACK_SIGNING_SECRET:-}
+      SLACK_REDIRECT_URI: ${SLACK_REDIRECT_URI:-}
+    ports:
+      - "5173:5173"
+    networks:
+      - artemis-net
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # Consumes queue:campaign_requests and runs orchestrator + long-lived agents.
+  # Without this service, campaigns stay "queued" in Postgres while jobs sit in Redis.
+  agents:
+    build:
+      context: .
+      dockerfile: agents/Dockerfile
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-artemis}:${POSTGRES_PASSWORD:-artemis_db_secret}@postgres:5433/${POSTGRES_DB:-artemis}
+      REDIS_URL: redis://redis:6379
+      KES_URL: http://kali-service:8001
+      WAZUH_API_URL: https://wazuh-manager:55000
+      # Prefer Gemini inside Docker unless you set ARTEMIS_LLM_PROVIDER=ollama in .env (host .env is used for compose variable substitution).
+      ARTEMIS_LLM_PROVIDER: ${ARTEMIS_LLM_PROVIDER:-auto}
+      # When using Ollama on the Docker host from this container:
+      OLLAMA_API_BASE: ${OLLAMA_AGENTS_OLLAMA_URL:-http://172.17.0.1:11434}
+    extra_hosts:
+      - "172.17.0.1:host-gateway"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kali-service:
+        condition: service_started
+    networks:
+      - artemis-net
+    restart: unless-stopped
+
+
+
+
+
+
+
+
+
+
